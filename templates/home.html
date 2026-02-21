@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - DjangoTube{% endblock %}
+
+{% block content %}
+<!-- Filter Chips -->
+<div class="sticky top-14 bg-white border-b border-gray-200 px-6 py-3 z-10">
+    <div class="flex gap-3 overflow-x-auto">
+        <button class="px-4 py-1.5 bg-black text-white rounded-lg whitespace-nowrap text-sm font-medium">All</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Live</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Music</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Gaming</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">News</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Sports</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Learning</button>
+        <button class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg whitespace-nowrap text-sm font-medium">Technology</button>
+    </div>
+</div>
+
+<!-- Personalized Recommendations (Only for logged in users) -->
+{% if user.is_authenticated and recommended_videos %}
+<div class="p-6">
+    <h2 class="text-xl font-semibold mb-4">Recommended for You</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        {% for video in recommended_videos %}
+        <div class="cursor-pointer group">
+            <a href="{% url 'video_detail' video.id %}">
+                <div class="video-thumbnail rounded-xl overflow-hidden">
+                    <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="group-hover:scale-105 transition-transform duration-200">
+                </div>
+            </a>
+            <div class="flex gap-3 mt-3">
+                <a href="#" class="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {{ video.user.username|first|upper }}
+                </a>
+                <div class="flex-1">
+                    <a href="{% url 'video_detail' video.id %}">
+                        <h3 class="font-semibold text-sm line-clamp-2 leading-tight mb-1 hover:text-blue-600">
+                            {{ video.title }}
+                        </h3>
+                    </a>
+                    <p class="text-sm text-gray-600">{{ video.user.username }}</p>
+                    <p class="text-sm text-gray-600">{{ video.views }} views • {{ video.created_at|timesince }} ago</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <hr class="border-gray-200 mb-6">
+</div>
+{% endif %}
+
+<!-- Latest Videos Section -->
+<div class="p-6">
+    <h2 class="text-xl font-semibold mb-4">{% if section_title %}{{ section_title }}{% else %}Latest Videos{% endif %}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for video in videos %}
+        <div class="cursor-pointer group">
+            <a href="{% url 'video_detail' video.id %}">
+                <div class="video-thumbnail rounded-xl overflow-hidden">
+                    <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="group-hover:scale-105 transition-transform duration-200">
+                </div>
+            </a>
+            <div class="flex gap-3 mt-3">
+                <a href="#" class="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {{ video.user.username|first|upper }}
+                </a>
+                <div class="flex-1">
+                    <a href="{% url 'video_detail' video.id %}">
+                        <h3 class="font-semibold text-sm line-clamp-2 leading-tight mb-1 hover:text-blue-600">
+                            {{ video.title }}
+                        </h3>
+                    </a>
+                    <p class="text-sm text-gray-600">{{ video.user.username }}</p>
+                    <p class="text-sm text-gray-600">{{ video.views }} views • {{ video.created_at|timesince }} ago</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-video text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">No videos uploaded yet</h3>
+            {% if user.is_authenticated %}
+                <p class="text-gray-500 mb-4">Be the first to upload a video!</p>
+                <a href="{% url 'upload' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition">
+                    <i class="fas fa-video mr-2"></i>Upload Video
+                </a>
+            {% else %}
+                <p class="text-gray-500">Sign in to upload videos</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

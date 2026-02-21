@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DjangoTube{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .sidebar-scrollable {
+            max-height: calc(100vh - 56px);
+            overflow-y: auto;
+        }
+        .sidebar-scrollable::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scrollable::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-scrollable::-webkit-scrollbar-thumb {
+            background: #909090;
+            border-radius: 4px;
+        }
+        .sidebar-scrollable::-webkit-scrollbar-thumb:hover {
+            background: #757575;
+        }
+        .video-thumbnail {
+            position: relative;
+            padding-bottom: 56.25%;
+            background: #f0f0f0;
+        }
+        .video-thumbnail img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .duration-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-200">
+        <div class="flex items-center justify-between px-4 py-2 h-14">
+            <!-- Left Section: Menu & Logo -->
+            <div class="flex items-center gap-4">
+                <button id="menuBtn" class="p-2 hover:bg-gray-100 rounded-full transition">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <a href="{% url 'home' %}" class="flex items-center gap-1">
+                    <i class="fab fa-youtube text-red-600 text-3xl"></i>
+                    <span class="text-xl font-semibold">DjangoTube</span>
+                </a>
+            </div>
+
+            <!-- Center Section: Search -->
+            <div class="flex items-center flex-1 max-w-2xl mx-4">
+                <div class="flex w-full">
+                    <input 
+                        type="text" 
+                        placeholder="Search" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:border-blue-500"
+                    >
+                    <button class="px-6 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-200 transition">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="ml-4 p-2 hover:bg-gray-100 rounded-full transition">
+                    <i class="fas fa-microphone text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Right Section: Icons -->
+            <div class="flex items-center gap-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'upload' %}" class="p-2 hover:bg-gray-100 rounded-full transition" title="Upload Video">
+                        <i class="fas fa-video text-xl"></i>
+                    </a>
+                    <button class="p-2 hover:bg-gray-100 rounded-full transition">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <div class="relative group">
+                        <button class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {{ user.username|first|upper }}
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                            <div class="px-4 py-2 border-b border-gray-200">
+                                <p class="font-semibold">{{ user.username }}</p>
+                            </div>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="px-4 py-2 text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition font-medium">
+                        Sign in
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-14">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed left-0 w-60 bg-white border-r border-gray-200 sidebar-scrollable">
+            <nav class="py-2">
+                <!-- Home Section -->
+                <div class="mb-1">
+                    <a href="{% url 'home' %}" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100 {% if request.resolver_match.url_name == 'home' %}bg-gray-100 font-medium{% endif %}">
+                        <i class="fas fa-home text-xl w-6"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-compass text-xl w-6"></i>
+                        <span>Explore</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-play-circle text-xl w-6"></i>
+                        <span>Shorts</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-list text-xl w-6"></i>
+                        <span>Subscriptions</span>
+                    </a>
+                </div>
+
+                <hr class="my-2 border-gray-200">
+
+                <!-- Library Section -->
+                <div class="mb-1">
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-folder text-xl w-6"></i>
+                        <span>Library</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-history text-xl w-6"></i>
+                        <span>History</span>
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                            <i class="fas fa-video text-xl w-6"></i>
+                            <span>Your videos</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                            <i class="fas fa-clock text-xl w-6"></i>
+                            <span>Watch later</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                            <i class="fas fa-thumbs-up text-xl w-6"></i>
+                            <span>Liked videos</span>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <hr class="my-2 border-gray-200">
+
+                <!-- Settings -->
+                <div class="mb-1">
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-cog text-xl w-6"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-question-circle text-xl w-6"></i>
+                        <span>Help</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-6 px-6 py-2.5 hover:bg-gray-100">
+                        <i class="fas fa-comment-dots text-xl w-6"></i>
+                        <span>Send feedback</span>
+                    </a>
+                </div>
+
+                <hr class="my-2 border-gray-200">
+
+                <!-- Footer Links -->
+                <div class="px-6 py-4">
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <p class="flex flex-wrap gap-2">
+                            <a href="#" class="hover:text-gray-900">About</a>
+                            <a href="#" class="hover:text-gray-900">Press</a>
+                            <a href="#" class="hover:text-gray-900">Copyright</a>
+                        </p>
+                        <p class="flex flex-wrap gap-2">
+                            <a href="#" class="hover:text-gray-900">Contact us</a>
+                            <a href="#" class="hover:text-gray-900">Creators</a>
+                        </p>
+                        <p class="pt-2 text-gray-500">© 2026 DjangoTube</p>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="mainContent" class="flex-1 ml-60 bg-gray-50">
+            {% if messages %}
+                <div class="p-6">
+                    {% for message in messages %}
+                        <div class="mb-3 px-4 py-3 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 border border-red-200{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border border-yellow-200{% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        // Toggle sidebar functionality
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            if (sidebar.classList.contains('hidden')) {
+                mainContent.classList.remove('ml-60');
+                mainContent.classList.add('ml-0');
+            } else {
+                mainContent.classList.remove('ml-0');
+                mainContent.classList.add('ml-60');
+            }
+        });
+    </script>
+</body>
+</html>
